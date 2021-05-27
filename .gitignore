@@ -1,4 +1,8 @@
-videos/
+# zzh
+dataset/*
+bak/
+
+.vscode/
 *.zip
 centernet_models/*
 centertrack_models/*

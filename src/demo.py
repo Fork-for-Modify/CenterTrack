@@ -10,8 +10,8 @@ import cv2
 import json
 import copy
 import numpy as np
-from opts import opts
-from detector import Detector
+from lib.opts import opts
+from lib.detector import Detector
 
 
 image_ext = ['jpg', 'jpeg', 'png', 'webp']
@@ -41,17 +41,17 @@ def demo(opt):
     else:
       image_names = [opt.demo]
 
-  # Initialize output video
+  # config output setting
   out = None
-  out_name = opt.demo[opt.demo.rfind('/') + 1:]
+  out_name = opt.demo[opt.demo.rfind('/') + 1:opt.demo.rfind('.')]
   print('out_name', out_name)
   if opt.save_video:
     # fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    fourcc = cv2.VideoWriter_fourcc(*'H264')
-    out = cv2.VideoWriter('../results/{}.mp4'.format(
-      opt.exp_id + '_' + out_name),fourcc, opt.save_framerate, (
-        opt.video_w, opt.video_h))
-  
+    # fourcc = cv2.VideoWriter_fourcc(*'H264')
+    # fourcc = cv2.VideoWriter_fourcc(*'I420')
+    fourcc = cv2.VideoWriter_fourcc(*'MJPG')
+    save_format = '.avi'
+
   if opt.debug < 5:
     detector.pause = False
   cnt = 0
@@ -59,14 +59,21 @@ def demo(opt):
 
   while True:
       if is_video:
-        _, img = cam.read()
-        if img is None:
-          save_and_exit(opt, out, results, out_name)
+        _, img = cam.read()   
       else:
-        if cnt < len(image_names):
           img = cv2.imread(image_names[cnt])
-        else:
-          save_and_exit(opt, out, results, out_name)
+
+      # Initialize output video
+      if is_video and cnt==0:
+        in_video_h, in_video_w = img.shape[0:2]
+        out = cv2.VideoWriter(('../results/{}'+save_format).format(
+          opt.exp_id + '_' + out_name),fourcc, opt.save_framerate, (
+            in_video_w, in_video_h))
+        
+      # finish all         
+      if img is None or (not is_video and cnt >= len(image_names)):
+        save_and_exit(opt, out, results, out_name)
+      
       cnt += 1
 
       # resize the original video for saving video results
