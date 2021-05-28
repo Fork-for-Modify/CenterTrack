@@ -63,7 +63,10 @@ class opts(object):
     self.parser.add_argument('--save_imgs', default='', help='')
     self.parser.add_argument('--save_img_suffix', default='', help='')
     self.parser.add_argument('--skip_first', type=int, default=-1, help='')
-    self.parser.add_argument('--save_video', action='store_true')
+    self.parser.add_argument('--save_video', action='store_true', 
+                             help='save tracking results as a video')
+    self.parser.add_argument('--save_image', action='store_true', 
+                             help='save tracking results as images')
     self.parser.add_argument('--save_framerate', type=int, default=30)
     self.parser.add_argument('--resize_video', action='store_true')
     self.parser.add_argument('--video_h', type=int, default=512, help='')

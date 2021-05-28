@@ -163,7 +163,7 @@ class Detector(object):
             'pre': pre_time, 'net': net_time, 'dec': dec_time,
             'post': post_time, 'merge': merge_time, 'track': track_time,
             'display': display_time}
-    if self.opt.save_video:
+    if self.opt.save_video or self.opt.save_image:
       try:
         # return debug image for saving video
         ret.update({'generic': self.debugger.imgs['generic']})

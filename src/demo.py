@@ -13,7 +13,6 @@ import numpy as np
 from lib.opts import opts
 from lib.detector import Detector
 
-
 image_ext = ['jpg', 'jpeg', 'png', 'webp']
 video_ext = ['mp4', 'mov', 'avi', 'mkv']
 time_stats = ['tot', 'load', 'pre', 'net', 'dec', 'post', 'merge', 'display']
@@ -39,12 +38,15 @@ def demo(opt):
           if ext in image_ext:
               image_names.append(os.path.join(opt.demo, file_name))
     else:
+      # Demo on sinle image
       image_names = [opt.demo]
-
-  # config output setting
+      
+  # config output video setting
   out = None
-  out_name = opt.demo[opt.demo.rfind('/') + 1:opt.demo.rfind('.')]
-  print('out_name', out_name)
+  out_name = opt.demo[opt.demo.rfind('/')+1:]
+  if is_video:
+    out_name = out_name[:out_name.rfind('.')]
+  print(out_name)
   if opt.save_video:
     # fourcc = cv2.VideoWriter_fourcc(*'XVID')
     # fourcc = cv2.VideoWriter_fourcc(*'H264')
@@ -54,27 +56,35 @@ def demo(opt):
 
   if opt.debug < 5:
     detector.pause = False
-  cnt = 0
+  
   results = {}
-
+  save_path =  '../results/{}/{}'.format(out_name, opt.exp_id + '_' + out_name)
+  if not os.path.exists(save_path[:save_path.rfind('/')]):
+    os.makedirs(save_path[:save_path.rfind('/')])
+  if not os.path.exists(save_path) and opt.save_image:
+    # saved image dir
+    os.makedirs(save_path)
+  
+  cnt = 0  
   while True:
       if is_video:
-        _, img = cam.read()   
+        _, img = cam.read()
       else:
+        if cnt >= len(image_names):
+          img = None
+        else:
           img = cv2.imread(image_names[cnt])
-
-      # Initialize output video
-      if is_video and cnt==0:
-        in_video_h, in_video_w = img.shape[0:2]
-        out = cv2.VideoWriter(('../results/{}'+save_format).format(
-          opt.exp_id + '_' + out_name),fourcc, opt.save_framerate, (
-            in_video_w, in_video_h))
-        
-      # finish all         
-      if img is None or (not is_video and cnt >= len(image_names)):
-        save_and_exit(opt, out, results, out_name)
-      
       cnt += 1
+      
+      # finish all
+      if img is None:
+        save_and_exit(opt, out, results, out_name, save_path)
+        
+      # Initialize output video
+      if opt.save_video and cnt==1:
+        in_video_h, in_video_w = img.shape[0:2]
+        out = cv2.VideoWriter(save_path+'_video'+save_format,fourcc, opt.save_framerate, (
+            in_video_w, in_video_h))
 
       # resize the original video for saving video results
       if opt.resize_video:
@@ -100,26 +110,27 @@ def demo(opt):
       results[cnt] = ret['results']
 
       # save debug image to video
-      if opt.save_video:
-        out.write(ret['generic'])
-        if not is_video:
-          cv2.imwrite('../results/demo{}.jpg'.format(cnt), ret['generic'])
-      
+      if opt.save_results:
+        if opt.save_video:
+          out.write(ret['generic'])
+        if opt.save_image:
+          cv2.imwrite(save_path+'/demo{}.jpg'.format(cnt), ret['generic'])
+
+              
       # esc to quit and finish saving video
       if cv2.waitKey(1) == 27:
-        save_and_exit(opt, out, results, out_name)
-        return 
-  save_and_exit(opt, out, results)
+        save_and_exit(opt, out, results, out_name, save_path)
 
-
-def save_and_exit(opt, out=None, results=None, out_name=''):
+def save_and_exit(opt, out=None, results=None, out_name='', save_path='../results/res/res'):
+  if not os.path.exists(save_path[:save_path.rfind('/')]):
+    os.makedirs(save_path[:save_path.rfind('/')])
   if opt.save_results and (results is not None):
-    save_dir =  '../results/{}_results.json'.format(opt.exp_id + '_' + out_name)
-    print('saving results to', save_dir)
     json.dump(_to_list(copy.deepcopy(results)), 
-              open(save_dir, 'w'))
+              open(save_path+'_ResData.json', 'w'))
   if opt.save_video and out is not None:
     out.release()
+  print('saving result to', save_path)
+  print('out_name:',out_name)
   sys.exit(0)
 
 def _to_list(results):
