@@ -38,7 +38,7 @@ def demo(opt):
           if ext in image_ext:
               image_names.append(os.path.join(opt.demo, file_name))
     else:
-      # Demo on sinle image
+      # Demo on single image
       image_names = [opt.demo]
       
   # config output video setting
@@ -95,7 +95,6 @@ def demo(opt):
         continue
       
       cv2.imshow('input', img)
-
       # track or detect the image.
       ret = detector.run(img)
 

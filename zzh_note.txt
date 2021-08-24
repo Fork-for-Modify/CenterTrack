@@ -1,0 +1,9 @@
+info in the output json file:
+class:      category of the object
+ct:         center of the bbox (pixel)
+bbox:       bbox of the object (pixel)
+dep:        depth (z location) of the object (meter)
+dim:        3D dimension of the object (meter)
+loc:        3D location of the object (meter)
+tracking_id:tracking id of the object
+active:     appearing frame count of the object?
